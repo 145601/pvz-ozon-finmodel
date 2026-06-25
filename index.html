@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Финмодель ПВЗ Ozon · Тярлево</title>
+<style>
+:root{ color-scheme: light;
+  --bg:#f6f7f9; --card:#ffffff; --ink:#0f172a; --muted:#64748b; --line:#e2e8f0;
+  --ozon:#005bff; --green:#16a34a; --red:#dc2626; --amber:#b45309; --chip:#eef2ff;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 -apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;-webkit-text-size-adjust:100%;}
+.wrap{max-width:1180px;margin:0 auto;padding:14px 12px 56px;}
+h1{font-size:19px;margin:0 0 2px;}
+.sub{color:var(--muted);font-size:12.5px;margin-bottom:12px;}
+.sub b{color:var(--ink);}
+.card{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:13px;}
+.card h2{font-size:12px;text-transform:uppercase;letter-spacing:.03em;color:var(--muted);margin:0 0 9px;font-weight:700;}
+.reset{float:right;font-size:12px;color:var(--ozon);background:none;border:1px solid var(--line);border-radius:8px;padding:6px 11px;cursor:pointer;}
+
+.factgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;}
+@media(min-width:720px){.factgrid{grid-template-columns:repeat(5,1fr);}}
+.fact .v{font-size:17px;font-weight:700;} .fact .l{font-size:11px;color:var(--muted);}
+.neu{color:var(--ozon)} .pos{color:var(--green)} .neg{color:var(--red)}
+
+.verdict{border-radius:13px;padding:13px 15px;margin:13px 0 12px;font-size:15px;font-weight:600;border:1px solid;}
+.verdict.good{background:#f0fdf4;border-color:#bbf7d0;color:#166534;}
+.verdict.bad{background:#fef2f2;border-color:#fecaca;color:#991b1b;}
+.verdict small{display:block;font-weight:400;margin-top:4px;opacity:.88;font-size:13px;}
+.res{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;}
+@media(min-width:720px){.res{grid-template-columns:repeat(4,1fr);}}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:11px;}
+.kpi .l{font-size:11px;color:var(--muted);margin-bottom:5px;} .kpi .v{font-size:18px;font-weight:800;} .kpi .v.sm{font-size:15px;}
+
+/* контрольные точки */
+.miles{width:100%;border-collapse:collapse;font-size:13px;}
+.miles th{font-size:11px;text-transform:uppercase;letter-spacing:.03em;color:var(--muted);text-align:left;padding:6px 8px;border-bottom:2px solid var(--line);}
+.miles td{padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:top;}
+.miles td.t{font-weight:800;font-variant-numeric:tabular-nums;white-space:nowrap;}
+.miles .m{font-weight:800;white-space:nowrap;}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px;vertical-align:middle;}
+.rule{background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;border-radius:11px;padding:11px 13px;margin-top:11px;font-size:13.5px;}
+.rule b{color:#7c2d12;}
+
+.tabs{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;}
+.tab{border:1px solid var(--line);background:#fff;border-radius:999px;padding:6px 13px;font-size:12px;cursor:pointer;color:var(--muted);}
+.tab.on{background:var(--ozon);border-color:var(--ozon);color:#fff;}
+.chartbox{position:relative;height:240px;}
+
+.section-title{font-size:14px;font-weight:800;margin:20px 0 4px;}
+.viewsw{display:flex;gap:5px;margin:8px 0 12px;}
+.viewsw button{flex:1;max-width:200px;font-size:13px;border:1px solid var(--line);background:#fff;color:var(--muted);border-radius:9px;padding:8px;cursor:pointer;font-weight:600;}
+.viewsw button.on{background:var(--ozon);border-color:var(--ozon);color:#fff;}
+.inputs{display:grid;grid-template-columns:1fr;gap:11px;align-items:start;}
+@media(min-width:640px){.inputs{grid-template-columns:1fr 1fr;}}
+@media(min-width:980px){.inputs{grid-template-columns:1fr 1fr 1fr;}}
+
+.row{margin-bottom:11px;}
+.row .top{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:4px;}
+.row label{font-size:13px;color:var(--ink);cursor:help;}
+.row input[type=number]{width:92px;text-align:right;border:1px solid var(--line);border-radius:8px;padding:7px 8px;font:inherit;font-size:14px;font-weight:600;background:#fff;color:var(--ink)}
+.row .unit{font-size:11px;color:var(--muted);min-width:26px;}
+.row input[type=range]{width:100%;accent-color:var(--ozon);height:6px;margin:2px 0 0;}
+.modesw{display:flex;gap:4px;margin-bottom:11px;}
+.modesw button{flex:1;font-size:12px;border:1px solid var(--line);background:#fff;color:var(--muted);border-radius:8px;padding:7px;cursor:pointer;}
+.modesw button.on{background:var(--ozon);border-color:var(--ozon);color:#fff;}
+.derived{font-size:12.5px;color:var(--muted);background:var(--chip);border-radius:9px;padding:7px 10px;margin-bottom:11px;}
+.derived b{color:var(--ozon);}
+.subh{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;margin:12px 0 7px;padding-top:10px;border-top:1px dashed var(--line);}
+.foot{color:var(--muted);font-size:11.5px;margin-top:16px;line-height:1.55;}
+.pill{display:inline-block;background:var(--chip);color:var(--ozon);font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;margin-left:4px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <button class="reset" onclick="resetAll()">↺ Сбросить</button>
+  <h1>Финмодель ПВЗ Ozon — Тярлево <span class="pill">интерактивно</span></h1>
+  <div class="sub">ИП на УСН 6% · работает с 27.04.2026 · модель калибрована по отчётам Ozon (май, июнь 2026). Двигайте <b>ползунки</b> или вводите числа.</div>
+
+  <div class="card" style="margin-bottom:6px;">
+    <h2>Факт по отчётам Ozon</h2>
+    <div class="factgrid">
+      <div class="fact"><span class="v">25 319 ₽</span><span class="l">Май (с бонусом 5 000 ₽)</span></div>
+      <div class="fact"><span class="v">25 258 ₽</span><span class="l">Июнь, 21 день</span></div>
+      <div class="fact"><span class="v neu">≈36 100 ₽</span><span class="l">Июнь — прогноз 30 дней</span></div>
+      <div class="fact"><span class="v">≈5,5 %</span><span class="l">Ставка вознаграждения</span></div>
+      <div class="fact"><span class="v">≈628 тыс ₽</span><span class="l">Оборот, июнь (прогноз)</span></div>
+    </div>
+  </div>
+
+  <div id="verdict" class="verdict good"></div>
+  <div class="res">
+    <div class="kpi"><div class="l">Выручка / мес</div><div class="v neu" id="kRev"></div></div>
+    <div class="kpi"><div class="l">Расходы / мес (с налогом)</div><div class="v neg" id="kCost"></div></div>
+    <div class="kpi"><div class="l">Чистая прибыль / мес</div><div class="v" id="kNet"></div></div>
+    <div class="kpi"><div class="l">Рентабельность</div><div class="v sm" id="kMargin"></div></div>
+    <div class="kpi"><div class="l">Прибыль / год (с ростом)</div><div class="v sm" id="kYear"></div></div>
+    <div class="kpi"><div class="l">Окупаемость собств. вложений</div><div class="v sm" id="kPayback"></div></div>
+    <div class="kpi"><div class="l">Безубыточность, оборот/мес</div><div class="v sm" id="kBE"></div></div>
+    <div class="kpi"><div class="l">…то же в день</div><div class="v sm" id="kBEd"></div></div>
+  </div>
+
+  <!-- КОНТРОЛЬНЫЕ ТОЧКИ -->
+  <div class="card" style="margin-top:12px;">
+    <h2>Контрольные точки: какой оборот нужен по месяцам</h2>
+    <table class="miles"><thead><tr><th>Месяц</th><th>Мин. оборот/мес</th><th>В день</th><th>Что это значит</th></tr></thead>
+      <tbody id="milesBody"></tbody></table>
+    <div class="rule" id="ruleBox"></div>
+  </div>
+
+  <!-- ГРАФИК -->
+  <div class="card" style="margin-top:12px;">
+    <div class="tabs">
+      <div class="tab on" data-m="cash">Накопленный денежный поток</div>
+      <div class="tab" data-m="pl">Прибыль по месяцам</div>
+    </div>
+    <div class="row" style="max-width:460px;">
+      <div class="top"><label title="Прогнозный темп роста оборота">Рост оборота, %/мес</label>
+        <div style="display:flex;align-items:center;gap:4px;"><input type="number" id="growth" value="4" step="0.5"><span class="unit">%</span></div></div>
+      <input type="range" id="growthR" min="-5" max="20" step="0.5" value="4">
+    </div>
+    <div class="chartbox"><canvas id="chart"></canvas></div>
+  </div>
+
+  <!-- ВВОДЫ -->
+  <div class="section-title">Параметры модели</div>
+  <div class="viewsw">
+    <button id="vSimple" class="on" onclick="setView('simple')">Упрощённо</button>
+    <button id="vDetail" onclick="setView('detail')">Подробно</button>
+  </div>
+  <div class="inputs">
+
+    <div class="card">
+      <h2>Выручка / мес</h2>
+      <div class="modesw">
+        <button id="mExact" class="on" onclick="setMode('exact')">Точный оборот</button>
+        <button id="mOrd" onclick="setMode('ord')">По заказам и людям</button>
+      </div>
+      <div id="revExact"></div>
+      <div id="revOrd" style="display:none;"></div>
+      <div id="derived" class="derived" style="display:none;"></div>
+      <div id="revCommon"></div>
+    </div>
+
+    <div class="card">
+      <h2>Капвложения (разово)</h2>
+      <div id="capexSimple"></div>
+      <div id="capexDetail" style="display:none;"></div>
+      <div class="subh">Часть в долг (кредит)</div>
+      <div id="loan"></div>
+      <div id="loanInfo" class="derived"></div>
+    </div>
+
+    <div class="card">
+      <h2>Операционные расходы / мес</h2>
+      <div id="opexSimple"></div>
+      <div id="opexDetail" style="display:none;"></div>
+      <div class="subh">Зарплата (смены × оклад)</div>
+      <div id="salary"></div>
+      <div id="salInfo" class="derived"></div>
+    </div>
+  </div>
+
+  <div class="foot" id="foot"></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.js" integrity="sha384-iU8HYtnGQ8Cy4zl7gbNMOhsDTTKX02BTXptVP/vqAWIaTfM7isw76iyZCsjL2eVi" crossorigin="anonymous"></script>
+<script>
+const fmt=n=>Math.round(n).toLocaleString('ru-RU');
+const fmt1=n=>n.toLocaleString('ru-RU',{maximumFractionDigits:1});
+let mode='exact', view='simple', chartMode='cash', chart;
+const TAX=6;
+const state={};
+
+const REV_EXACT=[['turnover','Оборот ПВЗ (выкупы)',628000,0,8000000,10000,'₽','В сезон до 6 млн+/мес']];
+const REV_ORD=[
+  ['visitors','Клиентов в день',14,0,400,1,'чел','Среднее число посетителей за день'],
+  ['opv','Заказов на клиента',1.4,1,5,0.1,'шт','Сколько заказов забирает один человек'],
+  ['check','Средний чек заказа',1100,100,8000,50,'₽','Средняя стоимость заказа'],
+  ['workdays','Рабочих дней / мес',30,1,31,1,'дн',''],
+];
+const REV_COMMON=[
+  ['rate','Ставка вознаграждения',5.5,0,8,0.1,'%','5% базовый + надбавки; по отчётам ≈5,5%'],
+  ['extra','Доп. доходы (возвраты, упаковка)',2100,0,40000,100,'₽','15 ₽/возврат + упаковка + доставка'],
+];
+const CAPEX_SIMPLE=[['capexTotal','Капзатраты, всего',1500000,0,6000000,50000,'₽','павильон + оборудование + отделка']];
+const CAPEX_DETAIL=[
+  ['pavilion','Павильон (постройка)',900000,0,4000000,10000,'₽','Строительство на участке'],
+  ['equip','Оборудование',55000,0,400000,5000,'₽','ПК, термопринтер, сканер, касса'],
+  ['cam','Камеры + монтаж',30000,0,200000,5000,'₽','2 камеры, хранение 90 дней'],
+  ['furniture','Мебель, стеллажи',60000,0,400000,5000,'₽',''],
+  ['repair','Отделка, подключение',50000,0,500000,5000,'₽',''],
+  ['deposit','Обеспечит. платёж Ozon',30000,0,80000,5000,'₽','Возвратный'],
+  ['startother','Прочее (ИП, реклама)',12000,0,100000,1000,'₽','Вывеска от Ozon — 1 ₽'],
+];
+const LOAN=[
+  ['loan','Сумма в долг',0,0,6000000,50000,'₽','Часть капзатрат в кредит'],
+  ['loanRate','Ставка по кредиту',25,0,60,0.5,'%/год','Годовая ставка'],
+  ['loanTerm','Срок кредита',24,1,120,1,'мес','Срок погашения'],
+];
+const OPEX_SIMPLE=[['opexOther','Операционные расходы без зарплат',19000,0,250000,500,'₽','аренда, свет, связь, расходники…']];
+const OPEX_DETAIL=[
+  ['rent','Аренда участка',5500,0,80000,500,'₽','Указано вами'],
+  ['utility','Электричество / отопление',5000,0,40000,500,'₽','Павильон, обогрев зимой'],
+  ['internet','Интернет / связь',1500,0,10000,100,'₽',''],
+  ['cctv','Видеонаблюдение (облако)',1500,0,8000,100,'₽','Обязательно для «Максимум бренда»'],
+  ['acquiring','Эквайринг / ОФД',2000,0,15000,100,'₽',''],
+  ['supplies','Расходники',1500,0,15000,100,'₽','Пакеты, чеки, термолента'],
+  ['other_op','Прочее / обслуживание',2000,0,30000,250,'₽','Уборка, ремонт, бухгалтерия'],
+];
+const SALARY=[
+  ['salDays','Смен в месяц',12,0,62,1,'дн','Сколько дней работает наёмный сотрудник'],
+  ['salRate','Оклад за смену',2500,0,8000,100,'₽','Ставка за одну смену'],
+];
+
+function buildRows(arr, mountId){
+  const host=document.getElementById(mountId);
+  arr.forEach(([id,label,base,min,max,step,unit,hint])=>{
+    state[id]=base;
+    const row=document.createElement('div'); row.className='row';
+    row.innerHTML=`<div class="top"><label title="${hint||''}">${label}</label>
+      <div style="display:flex;align-items:center;gap:4px;"><input type="number" id="${id}" value="${base}" step="${step}"><span class="unit">${unit}</span></div></div>
+      <input type="range" id="${id}R" min="${min}" max="${max}" step="${step}" value="${base}">`;
+    host.appendChild(row);
+    const n=row.querySelector('#'+CSS.escape(id)), r=row.querySelector('#'+CSS.escape(id+'R'));
+    const sync=v=>{v=parseFloat(v)||0;state[id]=v;n.value=v;r.value=v;recompute();};
+    n.addEventListener('input',e=>sync(e.target.value));
+    r.addEventListener('input',e=>sync(e.target.value));
+  });
+}
+
+function turnoverNow(){
+  return mode==='ord' ? state.visitors*state.opv*state.check*state.workdays : state.turnover;
+}
+function annuity(P,annRate,n){
+  if(P<=0||n<=0) return 0;
+  const r=annRate/100/12;
+  if(r===0) return P/n;
+  return P*(r*Math.pow(1+r,n))/(Math.pow(1+r,n)-1);
+}
+function calc(){
+  const turnover=turnoverNow();
+  const revenue=turnover*state.rate/100+state.extra;
+  const tax=revenue*TAX/100;
+  const capex = view==='simple'? state.capexTotal : CAPEX_DETAIL.reduce((s,[id])=>s+state[id],0);
+  const opexOther = view==='simple'? state.opexOther : OPEX_DETAIL.reduce((s,[id])=>s+state[id],0);
+  const salary = state.salDays*state.salRate;
+  const loanPay = annuity(state.loan,state.loanRate,state.loanTerm);
+  const fixedOpex = opexOther + salary + loanPay;
+  const totalCost = fixedOpex + tax;
+  const net = revenue - totalCost;
+  const equity = Math.max(capex - state.loan, 0);
+  const margin = revenue>0 ? net/revenue*100 : 0;
+  const beRevenue = fixedOpex/(1-TAX/100);
+  const beTurnover = state.rate>0 ? (beRevenue-state.extra)/(state.rate/100) : Infinity;
+  return {turnover,revenue,tax,capex,opexOther,salary,loanPay,fixedOpex,totalCost,net,equity,margin,beTurnover};
+}
+
+function simulate(N){
+  const c=calc(); const g=state.growth/100; const turn0=c.turnover;
+  let cash=-c.equity; const labels=[],cashArr=[],plArr=[]; let payback=null, year=0;
+  for(let m=1;m<=N;m++){
+    const turn=turn0*Math.pow(1+g,m-1);
+    const rev=turn*state.rate/100+state.extra;
+    const lp = m<=state.loanTerm ? c.loanPay : 0;
+    const net=rev-(c.opexOther+c.salary+lp+rev*TAX/100);
+    cash+=net;
+    if(m<=24){labels.push('М'+m);cashArr.push(Math.round(cash));plArr.push(Math.round(net));}
+    if(m<=12) year+=net;
+    if(payback===null && cash>=0) payback=m;
+  }
+  return {labels,cashArr,plArr,payback,year};
+}
+
+function setMode(m){
+  mode=m;
+  document.getElementById('mExact').classList.toggle('on',m==='exact');
+  document.getElementById('mOrd').classList.toggle('on',m==='ord');
+  document.getElementById('revExact').style.display=m==='exact'?'':'none';
+  document.getElementById('revOrd').style.display=m==='ord'?'':'none';
+  document.getElementById('derived').style.display=m==='ord'?'':'none';
+  recompute();
+}
+function setView(v){
+  view=v;
+  document.getElementById('vSimple').classList.toggle('on',v==='simple');
+  document.getElementById('vDetail').classList.toggle('on',v==='detail');
+  document.getElementById('capexSimple').style.display=v==='simple'?'':'none';
+  document.getElementById('capexDetail').style.display=v==='detail'?'':'none';
+  document.getElementById('opexSimple').style.display=v==='simple'?'':'none';
+  document.getElementById('opexDetail').style.display=v==='detail'?'':'none';
+  recompute();
+}
+
+function renderMilestones(be, turnover){
+  if(!isFinite(be)||be<=0){document.getElementById('milesBody').innerHTML='';return;}
+  const rows=[
+    ['1–2',0.4,'Запуск. Убыток нормален — идёт раскрутка точки'],
+    ['3',0.6,'Поток должен заметно расти месяц к месяцу'],
+    ['6',1.0,'Выход в операционный ноль — ключевая проверка'],
+    ['9',1.2,'Пошла прибыль, копим на возврат вложений'],
+    ['12',1.4,'Устойчивая прибыль; иначе — пересмотр модели'],
+  ];
+  document.getElementById('milesBody').innerHTML = rows.map(([m,f,note])=>{
+    const t=be*f;
+    const ok = turnover>=t;
+    const near = turnover>=t*0.85 && turnover<t;
+    const color = ok?'var(--green)':near?'var(--amber)':'var(--red)';
+    return `<tr>
+      <td class="m"><span class="dot" style="background:${color}"></span>${m}</td>
+      <td class="t">${fmt(t)} ₽</td>
+      <td class="t">${fmt(t/30)} ₽</td>
+      <td>${note}</td></tr>`;
+  }).join('');
+}
+
+function recompute(){
+  const c=calc();
+  if(mode==='ord'){
+    document.getElementById('derived').innerHTML=
+      `Расчётный оборот: <b>${fmt(c.turnover)} ₽/мес</b> &nbsp;·&nbsp; ${fmt(state.visitors*state.opv)} заказов/день`;
+  }
+  document.getElementById('loanInfo').innerHTML = state.loan>0
+    ? `Платёж по кредиту: <b>${fmt(c.loanPay)} ₽/мес</b> × ${state.loanTerm} мес. Своих денег на старте: <b>${fmt(c.equity)} ₽</b>`
+    : `Кредит не используется. Своих денег на старте: <b>${fmt(c.equity)} ₽</b>`;
+  document.getElementById('salInfo').innerHTML=`Итого зарплата: <b>${fmt(c.salary)} ₽/мес</b> (${state.salDays} × ${fmt(state.salRate)} ₽)`;
+
+  const sim=simulate(120);
+  document.getElementById('kRev').textContent=fmt(c.revenue)+' ₽';
+  document.getElementById('kCost').textContent=fmt(c.totalCost)+' ₽';
+  const kn=document.getElementById('kNet'); kn.textContent=(c.net>=0?'+':'−')+fmt(Math.abs(c.net))+' ₽'; kn.className='v '+(c.net>=0?'pos':'neg');
+  const km=document.getElementById('kMargin'); km.textContent=fmt1(c.margin)+' %'; km.className='v sm '+(c.net>=0?'pos':'neg');
+  const ky=document.getElementById('kYear'); ky.textContent=(sim.year>=0?'+':'−')+fmt(Math.abs(sim.year))+' ₽'; ky.className='v sm '+(sim.year>=0?'pos':'neg');
+  document.getElementById('kPayback').textContent = sim.payback? (sim.payback+' мес ('+fmt1(sim.payback/12)+' г)') : '> 10 лет';
+  document.getElementById('kBE').textContent=(c.beTurnover===Infinity||c.beTurnover<0)?'—':fmt(c.beTurnover)+' ₽';
+  document.getElementById('kBEd').textContent=(c.beTurnover===Infinity||c.beTurnover<0)?'—':fmt(c.beTurnover/30)+' ₽/день';
+
+  const v=document.getElementById('verdict');
+  if(c.net>=0){
+    v.className='verdict good';
+    v.innerHTML=`✅ Прибыльно: чистыми <b>+${fmt(c.net)} ₽/мес</b> (${fmt1(c.margin)}% маржа). Вложения ${fmt(c.equity)} ₽ окупятся ${sim.payback?('за <b>'+sim.payback+' мес</b>'):'нескоро'}.
+      <small>Оборот ≈${fmt(c.turnover)} ₽/мес. Запас до нуля — ${fmt1((c.turnover-c.beTurnover)/Math.max(c.turnover,1)*100)}% (безубыточность при ${fmt(c.beTurnover)} ₽/мес).</small>`;
+  } else {
+    v.className='verdict bad';
+    const need=c.beTurnover-c.turnover;
+    v.innerHTML=`⚠️ Сейчас убыток: <b>−${fmt(Math.abs(c.net))} ₽/мес</b>. Безубыточность — оборот <b>${fmt(c.beTurnover)} ₽/мес</b> (${fmt(c.beTurnover/30)} ₽/день).
+      <small>Не хватает оборота ≈${fmt(need)} ₽/мес (+${fmt1(need/Math.max(c.turnover,1)*100)}%) либо срезать расходы на ${fmt(Math.abs(c.net))} ₽.</small>`;
+  }
+
+  renderMilestones(c.beTurnover, c.turnover);
+  document.getElementById('ruleBox').innerHTML =
+    `<b>Правило решения:</b> ПВЗ открылся 27.04.2026 — сейчас идёт ~2-й месяц. Ориентир: к <b>6-му месяцу</b> (~октябрь 2026, когда вернётся кадетское училище) оборот должен выйти на безубыточность <b>${isFinite(c.beTurnover)?fmt(c.beTurnover):'—'} ₽/мес</b>. `+
+    `Если оборот <b>2 месяца подряд не растёт</b> и держится ниже <b>${isFinite(c.beTurnover)?fmt(c.beTurnover*0.7):'—'} ₽/мес</b> после 6-го месяца — это сигнал закрывать или переносить точку. `+
+    `Зелёным/жёлтым/красным в таблице помечено, проходит ли текущий оборот (${fmt(c.turnover)} ₽) каждую планку.`;
+
+  drawChart(sim);
+  document.getElementById('foot').innerHTML=
+    `Налог УСН «Доходы» ${TAX}% со всей выручки; в капвложения входит возвратный обеспечительный платёж Ozon. `+
+    `Кредит: на старте вычитается только сумма своих денег (капзатраты − долг), платёж по кредиту учитывается ${state.loanTerm} мес. `+
+    `Модель выручки калибрована по отчётам №34111838 и №35820639 — эфф. ставка ≈5,5% оборота (совпадение с фактом до 0,6%). Рыночные ориентиры — медианы по СПб/региону 2026 г.`;
+}
+
+function drawChart(sim){
+  const data=chartMode==='cash'?sim.cashArr:sim.plArr;
+  const label=chartMode==='cash'?'Накопленный поток (учитывает −свои вложения)':'Чистая прибыль за месяц';
+  const colors=data.map(v=>v>=0?'rgba(22,163,74,.75)':'rgba(220,38,38,.75)');
+  if(chart) chart.destroy();
+  chart=new Chart(document.getElementById('chart'),{
+    type:chartMode==='cash'?'line':'bar',
+    data:{labels:sim.labels,datasets:[{label,data,borderColor:'#005bff',
+      backgroundColor:chartMode==='cash'?'rgba(0,91,255,.10)':colors,
+      fill:chartMode==='cash',tension:.25,pointRadius:0,borderWidth:2}]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:true,labels:{boxWidth:12,font:{size:11}}},
+        tooltip:{callbacks:{label:x=>fmt(x.parsed.y)+' ₽'}}},
+      scales:{y:{ticks:{callback:v=>fmt(v)+' ₽',font:{size:10}},grid:{color:'#eef2f6'}},
+              x:{grid:{display:false},ticks:{font:{size:10},maxTicksLimit:12}}}}
+  });
+}
+document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>{
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));
+  t.classList.add('on'); chartMode=t.dataset.m; recompute();
+}));
+function bindGrowth(){
+  state.growth=4;
+  const n=document.getElementById('growth'), r=document.getElementById('growthR');
+  const s=v=>{v=parseFloat(v)||0;state.growth=v;n.value=v;r.value=v;recompute();};
+  n.addEventListener('input',e=>s(e.target.value));
+  r.addEventListener('input',e=>s(e.target.value));
+}
+function resetAll(){
+  [...REV_EXACT,...REV_ORD,...REV_COMMON,...CAPEX_SIMPLE,...CAPEX_DETAIL,...LOAN,...OPEX_SIMPLE,...OPEX_DETAIL,...SALARY].forEach(([id,,base])=>{
+    state[id]=base; const n=document.getElementById(id),r=document.getElementById(id+'R');
+    if(n)n.value=base; if(r)r.value=base;
+  });
+  state.growth=4; document.getElementById('growth').value=4; document.getElementById('growthR').value=4;
+  setMode('exact'); setView('simple');
+}
+
+buildRows(REV_EXACT,'revExact'); buildRows(REV_ORD,'revOrd'); buildRows(REV_COMMON,'revCommon');
+buildRows(CAPEX_SIMPLE,'capexSimple'); buildRows(CAPEX_DETAIL,'capexDetail'); buildRows(LOAN,'loan');
+buildRows(OPEX_SIMPLE,'opexSimple'); buildRows(OPEX_DETAIL,'opexDetail'); buildRows(SALARY,'salary');
+bindGrowth();
+recompute();
+</script>
+</body>
+</html>

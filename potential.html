@@ -75,6 +75,8 @@ table.t td.n{text-align:right;font-variant-numeric:tabular-nums;font-weight:600;
       <span><i class="dotL" style="background:#dc2626"></i> Яндекс</span>
       <span><i class="dotL" style="background:#7c3aed"></i> Wildberries</span>
       <span><i class="dotL" style="background:#94a3b8"></i> закрыт</span>
+      <span>🚓⛽🌳🎓 якоря спроса</span>
+      <span style="color:#0ea5e9">— — коридор автопотока</span>
     </div>
   </div>
 
@@ -101,6 +103,7 @@ table.t td.n{text-align:right;font-variant-numeric:tabular-nums;font-weight:600;
           <div class="kpi"><div class="l">Местная зона, чел</div><div class="v" id="kPpl"></div></div>
           <div class="kpi"><div class="l">До безубыточности</div><div class="v" id="kGap"></div></div>
         </div>
+        <button id="toFinance" style="margin-top:11px;width:100%;border:1px solid var(--ozon);background:var(--ozon);color:#fff;border-radius:9px;padding:10px;font-size:13px;font-weight:700;cursor:pointer">Подставить этот оборот в финмодель →</button>
       </div>
       <div class="card">
         <h2>Конкуренты и расстояния</h2>
@@ -169,7 +172,26 @@ document.querySelectorAll('.maprow button').forEach(b=>b.addEventListener('click
   document.querySelectorAll('.maprow button').forEach(x=>x.classList.remove('on'));
   b.classList.add('on'); drawRings(+b.dataset.r);
 }));
-const grp=L.featureGroup(markers); map.fitBounds(grp.getBounds().pad(0.25));
+// ---- POI: якоря спроса ----
+const POI=[
+  {n:'ГАИ + удобная парковка (у точки)', lat:59.70260, lng:30.43930, ic:'🚓', note:'клиенты ГИБДД со всего района, парковка, нет очереди'},
+  {n:'АЗС Роснефть · Фильтровское ш. 12', lat:59.69865, lng:30.44016, ic:'⛽', note:'круглосуточный автотрафик мимо точки'},
+  {n:'Вход в Павловский парк (Тярлевские ворота)', lat:59.6998, lng:30.4515, ic:'🌳', note:'≈ приблизительно · приезжают гулять на машинах'},
+  {n:'Кадетская школа · Декабристов 14', lat:59.68101, lng:30.45860, ic:'🎓', note:'≈ 2,4 км · одна из нескольких в районе · спрос в учебный год'},
+];
+const poiM=POI.map(p=>L.marker([p.lat,p.lng],{icon:L.divIcon({className:'poi',
+  html:`<div style="font-size:17px;line-height:1;text-shadow:0 0 3px #fff,0 0 3px #fff">${p.ic}</div>`,
+  iconSize:[20,20],iconAnchor:[10,10]})}).addTo(map).bindPopup(`<b>${p.n}</b><br>${p.note}`));
+
+// ---- коридор Московского шоссе (проезжий автопоток на север) ----
+const corridor=L.polyline([[59.70247,30.44006],[59.7065,30.4365],[59.7120,30.4335],[59.7175,30.4300]],
+  {color:'#0ea5e9',weight:5,opacity:0.45,dashArray:'9,7'}).addTo(map);
+corridor.bindPopup('Проезжий автопоток: Фильтровское ш. → Московское шоссе (на север). Не-местные клиенты по пути.');
+L.marker([59.7168,30.4308],{icon:L.divIcon({className:'poi',
+  html:'<div style="font-size:11px;background:#0ea5e9;color:#fff;padding:2px 7px;border-radius:7px;white-space:nowrap;font-weight:700">→ к Московскому шоссе</div>',
+  iconSize:[140,18],iconAnchor:[12,9]})}).addTo(map);
+
+const grp=L.featureGroup([...markers,...poiM,corridor]); map.fitBounds(grp.getBounds().pad(0.15));
 
 // ---- таблица конкурентов ----
 document.getElementById('compBody').innerHTML=POINTS.filter(p=>!p.me)
@@ -218,6 +240,7 @@ function calc(){
   const ordersDay=ordersMonth/30;
   const turn=ordersMonth*st.check;
   const gap=turn-BREAK_EVEN;
+  window.__turn=turn;
 
   document.getElementById('kOrders').textContent=fmt(ordersDay)+' шт';
   document.getElementById('kPpl').textContent=fmt(ppl)+' чел';
@@ -249,6 +272,16 @@ document.getElementById('foot').innerHTML=
   `<b>Чужие зоны.</b> Павловск (18 097 чел) и Пушкин закрыты собственными плотными кластерами ПВЗ (Ozon/Яндекс/WB) в 1,5–2 км — пешего потока оттуда почти нет. Поэтому «радиус 3 км × плотность населения» переоценил бы потенциал в разы; но автопоток частично «перешагивает» эти зоны.<br><br>`+
   `<b>Калибровка.</b> Сценарий «Сейчас» (доля 45%, 6 заказов/жителя в год + 4 авто-заказа/день) даёт ≈ текущий факт (~628 000 ₽/мес) — значит допущения близки к реальности. Рост — по рычагам: доля против соседа, авто/проезжие, сезон (дачи, парк, кадеты), созревание онлайн-привычки (по РФ ~12–15 заказов Ozon на жителя в год).<br><br>`+
   `<i>Оценка, а не перепись: координаты конкурентов с открытых карт, население — официальное, «спрос→заказы» — допущение с ползунками. Wildberries на Большой 34Б отмечен как закрытый по данным карт.</i>`;
+
+// кнопка: передать оборот в финмодель (внутри интегрированной страницы — postMessage, иначе — переход с ?turnover=)
+document.getElementById('toFinance').addEventListener('click',()=>{
+  const v=Math.round(window.__turn||0);
+  if(window.parent && window.parent!==window){
+    window.parent.postMessage({type:'fromMapTurnover',value:v},'*');
+  } else {
+    location.href='./?turnover='+v;
+  }
+});
 
 calc();
 </script>

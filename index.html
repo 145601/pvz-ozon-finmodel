@@ -77,6 +77,7 @@ h1{font-size:19px;margin:0 0 2px;}
   <button class="reset" onclick="resetAll()">↺ Сбросить</button>
   <h1>Финмодель ПВЗ Ozon — Тярлево <span class="pill">интерактивно</span></h1>
   <div class="sub">ИП на УСН 6% · работает с 27.04.2026 · модель калибрована по отчётам Ozon (май, июнь 2026). Двигайте <b>ползунки</b> или вводите числа.</div>
+  <div id="mapBanner" style="display:none;background:#ecfdf5;border:1px solid #a7f3d0;color:#065f46;border-radius:10px;padding:9px 12px;margin-bottom:10px;font-size:13px;font-weight:600;"></div>
 
   <div class="card" style="margin-bottom:6px;">
     <h2>Факт по отчётам Ozon</h2>
@@ -403,6 +404,23 @@ buildRows(CAPEX_SIMPLE,'capexSimple'); buildRows(CAPEX_DETAIL,'capexDetail'); bu
 buildRows(OPEX_SIMPLE,'opexSimple'); buildRows(OPEX_DETAIL,'opexDetail'); buildRows(SALARY,'salary');
 bindGrowth();
 recompute();
+
+// приём оборота из карты потенциала (?turnover= или postMessage от интегрированной страницы)
+function applyTurnoverFromMap(v){
+  v=parseFloat(v)||0; if(v<=0) return;
+  setMode('exact'); setView('simple');
+  state.turnover=v;
+  const n=document.getElementById('turnover'),r=document.getElementById('turnover'+'R');
+  if(n)n.value=Math.round(v); if(r)r.value=Math.min(Math.round(v),8000000);
+  recompute();
+  const banner=document.getElementById('mapBanner');
+  if(banner){banner.style.display='block';banner.textContent='✓ Оборот '+Math.round(v).toLocaleString('ru-RU')+' ₽/мес подставлен из карты потенциала';}
+}
+(function(){
+  const p=new URLSearchParams(location.search).get('turnover');
+  if(p) applyTurnoverFromMap(p);
+})();
+window.addEventListener('message',e=>{ if(e.data&&e.data.type==='setTurnover') applyTurnoverFromMap(e.data.value); });
 </script>
 </body>
 </html>

@@ -15,7 +15,6 @@ html,body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 -apple-s
 .tabs button.on{background:var(--ozon);border-color:var(--ozon);color:#fff;}
 .flow{font-size:11.5px;color:var(--muted);margin-top:7px;}
 .flow b{color:var(--ozon);}
-.frameWrap{position:relative;}
 iframe{width:100%;border:0;display:block;background:var(--bg);}
 .hidden{display:none;}
 </style>
@@ -29,16 +28,15 @@ iframe{width:100%;border:0;display:block;background:var(--bg);}
     </div>
     <div class="flow">На карте оцените спрос → нажмите <b>«Подставить оборот в финмодель»</b> → во вкладке «Финмодель» увидите прибыль, окупаемость и точку безубыточности для этого оборота.</div>
   </div>
-  <div class="frameWrap">
+  <div>
     <iframe id="fMap" src="./potential.html" title="Карта и потенциал"></iframe>
-    <iframe id="fFin" class="hidden" src="./index.html" title="Финмодель"></iframe>
+    <iframe id="fFin" class="hidden" src="./finance.html" title="Финмодель"></iframe>
   </div>
 
 <script>
 const fMap=document.getElementById('fMap'), fFin=document.getElementById('fFin');
 function resize(){ const h=Math.max(window.innerHeight-110,520); fMap.style.height=h+'px'; fFin.style.height=h+'px'; }
 window.addEventListener('resize',resize); resize();
-
 function show(which){
   const map=which==='map';
   fMap.classList.toggle('hidden',!map);
@@ -46,13 +44,10 @@ function show(which){
   document.getElementById('tabMap').classList.toggle('on',map);
   document.getElementById('tabFin').classList.toggle('on',!map);
 }
-
 // мостик: карта присылает оборот → передаём в финмодель и переключаем вкладку
 window.addEventListener('message',e=>{
   if(e.data && e.data.type==='fromMapTurnover'){
-    const v=e.data.value;
-    // перезагружаем финмодель с параметром, чтобы оборот подставился при инициализации
-    fFin.src='./index.html?turnover='+encodeURIComponent(v)+'&_='+Date.now();
+    fFin.src='./finance.html?turnover='+encodeURIComponent(e.data.value)+'&_='+Date.now();
     show('fin');
   }
 });

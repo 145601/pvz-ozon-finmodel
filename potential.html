@@ -60,7 +60,7 @@ table.t td.n{text-align:right;font-variant-numeric:tabular-nums;font-weight:600;
 <div class="wrap">
   <h1>Потенциал точки — Тярлево <span class="pill">карта охвата</span></h1>
   <div class="sub">Сколько людей реально «питают» ваш ПВЗ, кто рядом конкурирует и какой оборот это даёт.
-  Связано с <a href="./">финмоделью</a> (безубыточность ≈ 910 000 ₽/мес). Данные точек — OpenStreetMap / Яндекс.Карты, население — Росстат/Петростат.</div>
+  Связано с <a href="./finance.html" target="_top">финмоделью</a> (безубыточность ≈ 910 000 ₽/мес). Данные точек — OpenStreetMap / Яндекс.Карты, население — Росстат/Петростат.</div>
 
   <div class="card">
     <div id="map"></div>
@@ -174,7 +174,7 @@ document.querySelectorAll('.maprow button').forEach(b=>b.addEventListener('click
 }));
 // ---- POI: якоря спроса ----
 const POI=[
-  {n:'ГАИ + удобная парковка (у точки)', lat:59.70260, lng:30.43930, ic:'🚓', note:'клиенты ГИБДД со всего района, парковка, нет очереди'},
+  {n:'ГАИ · ОГИБДД (Новая ул. 1)', lat:59.70341, lng:30.44073, ic:'🚓', note:'ОГИБДД Пушкинского района · автовладельцы со всего района, рядом парковка точки'},
   {n:'АЗС Роснефть · Фильтровское ш. 12', lat:59.69865, lng:30.44016, ic:'⛽', note:'круглосуточный автотрафик мимо точки'},
   {n:'Вход в Павловский парк (Тярлевские ворота)', lat:59.6998, lng:30.4515, ic:'🌳', note:'≈ приблизительно · приезжают гулять на машинах'},
   {n:'Кадетская школа · Декабристов 14', lat:59.68101, lng:30.45860, ic:'🎓', note:'≈ 2,4 км · одна из нескольких в районе · спрос в учебный год'},
@@ -279,7 +279,7 @@ document.getElementById('toFinance').addEventListener('click',()=>{
   if(window.parent && window.parent!==window){
     window.parent.postMessage({type:'fromMapTurnover',value:v},'*');
   } else {
-    location.href='./?turnover='+v;
+    location.href='./finance.html?turnover='+v;
   }
 });
 

@@ -60,7 +60,7 @@ table.t td.n{text-align:right;font-variant-numeric:tabular-nums;font-weight:600;
 <div class="wrap">
   <h1>Потенциал точки — Тярлево <span class="pill">карта охвата</span></h1>
   <div class="sub">Сколько людей реально «питают» ваш ПВЗ, кто рядом конкурирует и какой оборот это даёт.
-  Связано с <a href="./finance.html" target="_top">финмоделью</a> (безубыточность ≈ 910 000 ₽/мес). Данные точек — OpenStreetMap / Яндекс.Карты, население — Росстат/Петростат.</div>
+  Связано с <a href="./finance.html" target="_top">финмоделью</a> (безубыточность ≈ <span id="beVal">910 000</span> ₽/мес). Данные точек — OpenStreetMap / Яндекс.Карты, население — Росстат/Петростат.</div>
 
   <div class="card">
     <div id="map"></div>
@@ -123,7 +123,7 @@ table.t td.n{text-align:right;font-variant-numeric:tabular-nums;font-weight:600;
 <script>
 const FRIEND={lat:59.70247,lng:30.44006};
 const TYAR_POP=1765;     // население Тярлево (Петростат, 2025)
-const BREAK_EVEN=910000; // безубыточность из финмодели, ₽/мес
+let BREAK_EVEN=910000; // безубыточность из финмодели, ₽/мес (обновляется из финмодели)
 const CURRENT=628000;    // текущий оборот (июнь, прогноз 30д), ₽/мес
 
 // реальные геокодированные точки выдачи
@@ -282,6 +282,20 @@ document.getElementById('toFinance').addEventListener('click',()=>{
     location.href='./finance.html?turnover='+v;
   }
 });
+
+// обратный поток из финмодели: обновляем точку безубыточности на карте
+window.addEventListener('message',e=>{
+  if(e.data && e.data.type==='setBreakEven'){
+    if(e.data.value>0 && isFinite(e.data.value)){
+      BREAK_EVEN=e.data.value;
+      const bv=document.getElementById('beVal');
+      if(bv) bv.textContent=Math.round(BREAK_EVEN).toLocaleString('ru-RU')+' ₽ (из финмодели)';
+      calc();
+    }
+  }
+});
+// сообщаем родителю, что карта готова принять безубыточность из финмодели
+if(window.parent!==window){ try{ window.parent.postMessage({type:'mapReady'},'*'); }catch(e){} }
 
 calc();
 </script>

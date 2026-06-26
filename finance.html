@@ -76,6 +76,7 @@ h1{font-size:19px;margin:0 0 2px;}
 <body>
 <div class="wrap">
   <button class="reset" onclick="resetAll()">↺ Сбросить</button>
+  <button class="reset" onclick="goMap()" style="margin-right:6px">🗺 На карте</button>
   <h1>Финмодель ПВЗ Ozon — Тярлево <span class="pill">интерактивно</span></h1>
   <div class="sub">ИП на УСН 6% · калибрована по отчётам Ozon (май, июнь 2026). Двигайте <b>ползунки</b> или вводите числа. Данные <b>автосохраняются</b> в этом браузере.</div>
   <div id="mapBanner" style="display:none;background:#ecfdf5;border:1px solid #a7f3d0;color:#065f46;border-radius:10px;padding:9px 12px;margin-bottom:10px;font-size:13px;font-weight:600;"></div>
@@ -361,6 +362,16 @@ function recompute(){
     `Прибыль/год и окупаемость считаются с учётом «Роста оборота». Модель калибрована по отчётам №34111838 и №35820639 — эфф. ставка ≈5,5% оборота.`;
 
   saveState();
+
+  // обратный поток в карту: отправляем точку безубыточности и текущий оборот
+  if(window.parent!==window){
+    try{ window.parent.postMessage({type:'fromFinance',
+      beTurnover:isFinite(c.beTurnover)?c.beTurnover:0, turnover:c.turnover},'*'); }catch(e){}
+  }
+}
+function goMap(){
+  if(window.parent!==window) window.parent.postMessage({type:'showMap'},'*');
+  else location.href='./';
 }
 
 function saveState(){ try{ localStorage.setItem(LSKEY, JSON.stringify({state,mode,view})); }catch(e){} }

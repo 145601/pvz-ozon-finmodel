@@ -44,11 +44,20 @@ function show(which){
   document.getElementById('tabMap').classList.toggle('on',map);
   document.getElementById('tabFin').classList.toggle('on',!map);
 }
-// мостик: карта присылает оборот → передаём в финмодель и переключаем вкладку
+// двусторонний мостик карта ↔ финмодель
+let lastBE=0;
+function sendBEtoMap(v){ try{ fMap.contentWindow.postMessage({type:'setBreakEven', value:v},'*'); }catch(err){} }
 window.addEventListener('message',e=>{
-  if(e.data && e.data.type==='fromMapTurnover'){
+  if(!e.data) return;
+  if(e.data.type==='fromMapTurnover'){            // карта → финмодель: оборот
     fFin.src='./finance.html?turnover='+encodeURIComponent(e.data.value)+'&_='+Date.now();
     show('fin');
+  } else if(e.data.type==='fromFinance'){          // финмодель → карта: безубыточность
+    lastBE=e.data.beTurnover; sendBEtoMap(lastBE);
+  } else if(e.data.type==='mapReady'){             // карта загрузилась — отдаём ей актуальную безубыточность
+    if(lastBE>0) sendBEtoMap(lastBE);
+  } else if(e.data.type==='showMap'){              // финмодель → показать карту
+    show('map');
   }
 });
 </script>
